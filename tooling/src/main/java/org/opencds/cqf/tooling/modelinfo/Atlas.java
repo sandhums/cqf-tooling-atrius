@@ -117,6 +117,53 @@ public class Atlas {
             logger.info("Reading {} Conformance Resources", path);
             readConformanceResourcesFromFolder(Paths.get(basePath, path).toString());
         }
+        resolveDuplicateProfileIds();
+    }
+
+    /**
+     * When FHIR core, NDHM, and IG packages share the same StructureDefinition.id (e.g. Patient),
+     * prefer the constraint profile from the later-loaded package.
+     */
+    private void resolveDuplicateProfileIds() {
+        for (Resource resource : resources.values()) {
+            if (resource instanceof StructureDefinition) {
+                StructureDefinition sd = (StructureDefinition) resource;
+                if (sd.getKind() == StructureDefinition.StructureDefinitionKind.RESOURCE
+                        && sd.hasDerivation()
+                        && sd.getDerivation() == StructureDefinition.TypeDerivationRule.CONSTRAINT) {
+                    String id = sd.getId();
+                    StructureDefinition existing = structureDefinitions.get(id);
+                    if (existing == null || shouldPreferStructureDefinition(sd, existing)) {
+                        structureDefinitions.put(id, sd);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean shouldPreferStructureDefinition(StructureDefinition candidate, StructureDefinition incumbent) {
+        if (incumbent.getDerivation() != StructureDefinition.TypeDerivationRule.CONSTRAINT) {
+            return true;
+        }
+        int candidateRank = packagePreferenceRank(candidate.getUrl());
+        int incumbentRank = packagePreferenceRank(incumbent.getUrl());
+        return candidateRank > incumbentRank;
+    }
+
+    private int packagePreferenceRank(String url) {
+        if (url == null) {
+            return 0;
+        }
+        if (url.startsWith("https://atrius.in/")) {
+            return 3;
+        }
+        if (url.startsWith("https://nrces.in/ndhm/")) {
+            return 2;
+        }
+        if (url.startsWith("http://hl7.org/fhir/us/")) {
+            return 2;
+        }
+        return 1;
     }
 
     private String urlToId(String url) {

@@ -2,31 +2,20 @@ package org.opencds.cqf.tooling.modelinfo.atrius;
 
 import java.util.Map;
 
+import org.hl7.elm_modelinfo.r1.ChoiceTypeSpecifier;
+import org.hl7.elm_modelinfo.r1.ClassInfo;
+import org.hl7.elm_modelinfo.r1.ClassInfoElement;
+import org.hl7.elm_modelinfo.r1.IntervalTypeSpecifier;
+import org.hl7.elm_modelinfo.r1.ListTypeSpecifier;
+import org.hl7.elm_modelinfo.r1.NamedTypeSpecifier;
+import org.hl7.elm_modelinfo.r1.TypeInfo;
+import org.hl7.elm_modelinfo.r1.TypeSpecifier;
 import org.hl7.fhir.r4.model.StructureDefinition;
 import org.opencds.cqf.tooling.modelinfo.ClassInfoBuilder;
 
 /**
- * Builds Atrius profile ClassInfo entries for CQL ModelInfo generation.
- *
- * <p>Register in {@code StructureDefinitionToModelInfo}:
- * {@code else if (modelName.equals("Atrius")) { ... AtriusClassInfoBuilder ... AtriusModelInfoBuilder ... }}
- *
- * <p>Generate with:
- * <pre>
- *   -GenerateMIs -ip=&lt;spec-root&gt; -rp=4.0.1;ndhm.in;atrius -mn=Atrius -mv=0.1.0 -op=&lt;out&gt;
- * </pre>
- *
- * <p>CQL authors use two models (same pattern as QI-Core):
- * <pre>
- *   using FHIR version '4.0.1'
- *   using Atrius version '0.1.0'
- * </pre>
- *
- * <p>Profile ids below must match StructureDefinition.id values from the Atrius IG
- * ({@code atrius.fhir.r4.india}). Sync from {@code input/cql/atrius-profiles.list} when profiles change.
- *
- * <p>Base {@code atrius-condition} and {@code atrius-observation} are omitted intentionally —
- * measures should retrieve subtypes (aligned with Atrius evaluation strategy).
+ * CQL allowlist for Atrius CQL libraries. Add profiles when new libraries introduce retrieves
+ * or typed parameters — keep NDHM parents in sync.
  */
 public class AtriusClassInfoBuilder extends ClassInfoBuilder {
 
@@ -36,36 +25,15 @@ public class AtriusClassInfoBuilder extends ClassInfoBuilder {
 
     @Override
     protected void innerBuild() {
-        // Actors
         this.buildFor("Atrius", "atrius-patient");
+        this.buildFor("Atrius", "atrius-encounter");
         this.buildFor("Atrius", "atrius-practitioner");
         this.buildFor("Atrius", "atrius-practitionerrole");
         this.buildFor("Atrius", "atrius-organization");
-        this.buildFor("Atrius", "atrius-location");
-        this.buildFor("Atrius", "atrius-relatedperson");
 
-        // Clinical — condition (base atrius-condition omitted; use subtypes)
         this.buildFor("Atrius", "atrius-condition-encounter-diagnosis");
         this.buildFor("Atrius", "atrius-condition-problems-health-concerns");
-        this.buildFor("Atrius", "atrius-allergyintolerance");
-        this.buildFor("Atrius", "atrius-adverse-event");
-        this.buildFor("Atrius", "atrius-bodystructure");
-        this.buildFor("Atrius", "atrius-familymemberhistory");
-        this.buildFor("Atrius", "atrius-flag");
-        this.buildFor("Atrius", "atrius-goal");
 
-        // Encounter & care coordination
-        this.buildFor("Atrius", "atrius-encounter");
-        this.buildFor("Atrius", "atrius-careplan");
-        this.buildFor("Atrius", "atrius-careplan-assess-plan");
-        this.buildFor("Atrius", "atrius-careteam");
-        this.buildFor("Atrius", "atrius-communication");
-        this.buildFor("Atrius", "atrius-communication-not-done");
-        this.buildFor("Atrius", "atrius-communicationrequest");
-        this.buildFor("Atrius", "atrius-task");
-        this.buildFor("Atrius", "atrius-task-rejected");
-
-        // Observation (base atrius-observation omitted; use subtypes)
         this.buildFor("Atrius", "atrius-observation-body-measurement");
         this.buildFor("Atrius", "atrius-observation-general-assessment");
         this.buildFor("Atrius", "atrius-observation-lifestyle");
@@ -73,54 +41,82 @@ public class AtriusClassInfoBuilder extends ClassInfoBuilder {
         this.buildFor("Atrius", "atrius-observation-vital-signs");
         this.buildFor("Atrius", "atrius-observation-women-health");
 
-        // Diagnostics & imaging
-        this.buildFor("Atrius", "atrius-diagnosticreport-lab");
-        this.buildFor("Atrius", "atrius-diagnosticreport-note");
-        this.buildFor("Atrius", "atrius-imagingstudy");
-        this.buildFor("Atrius", "atrius-specimen");
-
-        // Procedures & service requests
-        this.buildFor("Atrius", "atrius-procedure");
-        this.buildFor("Atrius", "atrius-procedure-not-done");
-        this.buildFor("Atrius", "atrius-servicerequest");
-        this.buildFor("Atrius", "atrius-servicerequest-not-requested");
-
-        // Medications
         this.buildFor("Atrius", "atrius-medication");
         this.buildFor("Atrius", "atrius-medicationrequest");
-        this.buildFor("Atrius", "atrius-medicationrequest-requested");
         this.buildFor("Atrius", "atrius-medicationrequest-prohibited");
-        this.buildFor("Atrius", "atrius-medicationstatement");
-        this.buildFor("Atrius", "atrius-medicationadministration");
-        this.buildFor("Atrius", "atrius-medicationadministration-not-done");
-        this.buildFor("Atrius", "atrius-medicationdispense");
-        this.buildFor("Atrius", "atrius-medicationdispense-declined");
-        this.buildFor("Atrius", "atrius-nutritionorder");
 
-        // Devices
-        this.buildFor("Atrius", "atrius-device");
-        this.buildFor("Atrius", "atrius-devicerequest");
-        this.buildFor("Atrius", "atrius-devicerequest-requested");
-        this.buildFor("Atrius", "atrius-devicerequest-prohibited");
-        this.buildFor("Atrius", "atrius-deviceusestatement");
-
-        // Immunizations
         this.buildFor("Atrius", "atrius-immunization");
         this.buildFor("Atrius", "atrius-immunization-done");
         this.buildFor("Atrius", "atrius-immunization-not-done");
-        this.buildFor("Atrius", "atrius-immunizationevaluation");
         this.buildFor("Atrius", "atrius-immunizationrecommendation");
 
-        // Financial
-        this.buildFor("Atrius", "atrius-coverage");
-        this.buildFor("Atrius", "atrius-claim");
-        this.buildFor("Atrius", "atrius-claimresponse");
-
-        // Other
-        this.buildFor("Atrius", "atrius-questionnaireresponse");
-        this.buildFor("Atrius", "atrius-substance");
+        this.buildFor("Atrius", "atrius-procedure");
+        this.buildFor("Atrius", "atrius-procedure-not-done");
     }
 
-    // TODO: override resolveContentReference if Atrius observation subtypes need
-    // content-reference fixups (see USCoreClassInfoBuilder Observation.referenceRange).
+    @Override
+    protected void afterBuild() {
+        super.afterBuild();
+        alignNestedElementTypesWithNdhmParent();
+    }
+
+    private void alignNestedElementTypesWithNdhmParent() {
+        for (TypeInfo typeInfo : this.getTypeInfos().values()) {
+            if (!(typeInfo instanceof ClassInfo)) {
+                continue;
+            }
+            ClassInfo classInfo = (ClassInfo) typeInfo;
+            if (!"Atrius".equals(classInfo.getNamespace())) {
+                continue;
+            }
+            String baseType = classInfo.getBaseType();
+            if (baseType == null || !(baseType.startsWith("NDHM.") || baseType.startsWith("Atrius."))) {
+                continue;
+            }
+            for (ClassInfoElement element : classInfo.getElement()) {
+                rewriteAtriusNestedTypeReferences(element);
+            }
+        }
+    }
+
+    private void rewriteAtriusNestedTypeReferences(ClassInfoElement element) {
+        String elementType = element.getElementType();
+        if (elementType != null && elementType.startsWith("Atrius.") && elementType.contains(".")) {
+            element.setElementType("NDHM." + elementType.substring("Atrius.".length()));
+        }
+        rewriteAtriusNestedTypeReferences(element.getElementTypeSpecifier());
+    }
+
+    private void rewriteAtriusNestedTypeReferences(TypeSpecifier specifier) {
+        if (specifier == null) {
+            return;
+        }
+        if (specifier instanceof NamedTypeSpecifier) {
+            NamedTypeSpecifier namedType = (NamedTypeSpecifier) specifier;
+            if ("Atrius".equals(namedType.getNamespace()) && namedType.getName().contains(".")) {
+                namedType.setNamespace("NDHM");
+            }
+            return;
+        }
+        if (specifier instanceof ListTypeSpecifier) {
+            ListTypeSpecifier listType = (ListTypeSpecifier) specifier;
+            String listElementType = listType.getElementType();
+            if (listElementType != null && listElementType.startsWith("Atrius.") && listElementType.contains(".")) {
+                listType.setElementType("NDHM." + listElementType.substring("Atrius.".length()));
+            }
+            rewriteAtriusNestedTypeReferences(listType.getElementTypeSpecifier());
+            return;
+        }
+        if (specifier instanceof ChoiceTypeSpecifier) {
+            ChoiceTypeSpecifier choiceType = (ChoiceTypeSpecifier) specifier;
+            for (TypeSpecifier choice : choiceType.getChoice()) {
+                rewriteAtriusNestedTypeReferences(choice);
+            }
+            return;
+        }
+        if (specifier instanceof IntervalTypeSpecifier) {
+            IntervalTypeSpecifier intervalType = (IntervalTypeSpecifier) specifier;
+            rewriteAtriusNestedTypeReferences(intervalType.getPointTypeSpecifier());
+        }
+    }
 }

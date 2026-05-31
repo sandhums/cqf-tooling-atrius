@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration name="Generate Atrius ModelInfo" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="org.opencds.cqf.tooling.cli.Main" />
+    <module name="tooling-cli" />
+    <option name="PROGRAM_PARAMETERS" value="-GenerateMIs -ip=/Users/sandhu/AtriusIGDraft/input-cache/cql-modelinfo-spec -rp=4.0.1;ndhm.in;atrius -mn=Atrius -mv=0.1.0 -im=true -ucp=true -op=/Users/sandhu/AtriusIGDraft/input/resources/modelinfo" />
+    <envs>
+      <env name="NDHM_PACKAGE" value="/Users/sandhu/Downloads/ndhm" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

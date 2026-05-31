@@ -12,6 +12,8 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.opencds.cqf.tooling.Operation;
 import org.opencds.cqf.tooling.modelinfo.atrius.AtriusClassInfoBuilder;
 import org.opencds.cqf.tooling.modelinfo.atrius.AtriusModelInfoBuilder;
+import org.opencds.cqf.tooling.modelinfo.ndhm.NDHMClassInfoBuilder;
+import org.opencds.cqf.tooling.modelinfo.ndhm.NDHMModelInfoBuilder;
 import org.opencds.cqf.tooling.modelinfo.fhir.FHIRClassInfoBuilder;
 import org.opencds.cqf.tooling.modelinfo.fhir.FHIRModelInfoBuilder;
 import org.opencds.cqf.tooling.modelinfo.qicore.QICoreClassInfoBuilder;
@@ -131,10 +133,12 @@ public class StructureDefinitionToModelInfo extends Operation {
            -modelName="USCore"
            -modelVersion="7.0.0"
 
-        Arguments for producing Atrius Model Info
+        Arguments for producing Atrius Model Info (QICore-style: one CQL model library)
             -resourcePaths="4.0.1;ndhm.in;atrius"
             -modelName="Atrius"
             -modelVersion="0.1.0"
+            ndhm.in is loaded for profile snapshots/base types only; NDHM is not published as a separate ModelInfo.
+            Use IG Publisher output/ StructureDefinitions for the atrius package (snapshots), not fsh-generated differential-only files.
 
         NOTE: Once the ModelInfo is produced, there is a bug in the Jackson XML deserializer that requires that the xsi:type attribute be the first
         attribute in an element with polymorphic child elements. In a regex-search/replace, the following command will address this issue on the
@@ -237,6 +241,19 @@ public class StructureDefinitionToModelInfo extends Operation {
                 String helpersPath = IOUtils.concatFilePath(this.getOutputPath(),
                         modelName + "Helpers-" + modelVersion + ".cql");
                 miBuilder = new QICoreModelInfoBuilder(modelVersion, typeInfos, atlas, helpersPath);
+                mi = miBuilder.build();
+            } else if (modelName.equals("NDHM")) {
+                ClassInfoBuilder ciBuilder = new NDHMClassInfoBuilder(atlas);
+                ciBuilder.settings.useCQLPrimitives = this.useCQLPrimitives;
+                ciBuilder.settings.includeMetaData = this.includeMetadata;
+                ciBuilder.settings.createSliceElements = this.createSliceElements;
+                ciBuilder.settings.flatten = this.flatten;
+                Map<String, TypeInfo> typeInfos = ciBuilder.build();
+                ciBuilder.afterBuild();
+
+                String helpersPath = IOUtils.concatFilePath(this.getOutputPath(),
+                        modelName + "Helpers-" + modelVersion + ".cql");
+                miBuilder = new NDHMModelInfoBuilder(modelVersion, typeInfos, atlas, helpersPath);
                 mi = miBuilder.build();
             } else if (modelName.equals("Atrius")) {
                 ClassInfoBuilder ciBuilder = new AtriusClassInfoBuilder(atlas.getStructureDefinitions());

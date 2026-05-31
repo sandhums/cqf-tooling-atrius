@@ -18,7 +18,7 @@ class AtriusClassInfoSettings extends ClassInfoSettings {
         this.flatten = false;
 
         this.urlToModel.put("https://atrius.in/fhir/r4/atrius-core", "Atrius");
-        this.urlToModel.put("https://nrces.in/ndhm/fhir/r4", "FHIR");
+        this.urlToModel.put("https://nrces.in/ndhm/fhir/r4", "NDHM");
 
         this.codeableTypes = new HashSet<String>() {
             {
@@ -62,7 +62,6 @@ class AtriusClassInfoSettings extends ClassInfoSettings {
             this.primitiveTypeMappings = new HashMap<String, String>() {
                 {
                     put("FHIR.base64Binary", "System.String");
-                    put("FHIR.boolean", "System.Boolean");
                     put("FHIR.canonical", "System.String");
                     put("FHIR.code", "System.String");
                     put("FHIR.date", "System.Date");
@@ -144,8 +143,6 @@ class AtriusClassInfoSettings extends ClassInfoSettings {
                 {
                     put("FHIR.xsd:base64Binary", "System.String");
                     put("FHIR.base64Binary", "System.String");
-                    put("FHIR.xsd:boolean", "System.Boolean");
-                    put("FHIR.boolean", "System.Boolean");
                     put("FHIR.canonical", "System.String");
                     put("FHIR.xsd:token", "System.String");
                     put("FHIR.code", "System.String");
@@ -177,9 +174,8 @@ class AtriusClassInfoSettings extends ClassInfoSettings {
                     put("FHIR.uuid", "System.String");
                     put("FHIR.xhtml:div", "System.String");
                     put("FHIR.xhtml", "System.String");
-                    put("FHIR.Coding", "System.Code");
-                    put("FHIR.CodeableConcept", "System.Concept");
-                    put("FHIR.Period", "Interval<System.DateTime>");
+                    // Keep CodeableConcept, Coding, Period as FHIR.* on profile elements (QI-Core / CQL-LS pattern).
+                    // Conversions belong in FHIRHelpers at expression time, not as elementType + target on ClassInfo.
                     put("FHIR.Range", "Interval<System.Quantity>");
                     put("FHIR.Quantity", "System.Quantity");
                     put("FHIR.Age", "System.Quantity");

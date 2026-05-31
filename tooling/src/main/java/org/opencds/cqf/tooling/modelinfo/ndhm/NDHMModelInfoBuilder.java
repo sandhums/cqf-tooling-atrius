@@ -1,4 +1,4 @@
-package org.opencds.cqf.tooling.modelinfo.atrius;
+package org.opencds.cqf.tooling.modelinfo.ndhm;
 
 import java.io.PrintWriter;
 import java.util.Map;
@@ -13,21 +13,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Atrius modelinfo builder aligned with {@code NDHMModelInfoBuilder} / {@code USCoreModelInfoBuilder}:
- * context info, FHIRHelpers conversions in AtriusHelpers, parent model via targetUrl.
+ * NDHM modelinfo builder aligned with {@code USCoreModelInfoBuilder}:
+ * context info, FHIRHelpers conversions in NDHMHelpers, required FHIR model.
  */
-public class AtriusModelInfoBuilder extends ModelInfoBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(AtriusModelInfoBuilder.class);
-    private static final String NDHM_MODEL_VERSION = "6.5.0";
-    private static final String NDHM_MODEL_URL = "https://nrces.in/ndhm/fhir/r4";
+public class NDHMModelInfoBuilder extends ModelInfoBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(NDHMModelInfoBuilder.class);
     private static final String FHIR_MODEL_VERSION = "4.0.1";
     private static final String FHIR_MODEL_URL = "http://hl7.org/fhir";
     private String helpersPath;
     private ContextInfoBuilder contextInfoBuilder;
 
-    public AtriusModelInfoBuilder(String version, Map<String, TypeInfo> typeInfos, Atlas atlas, String helpersPath) {
+//    private final String helpersPath;
+//    private final ContextInfoBuilder contextInfoBuilder;
+
+    public NDHMModelInfoBuilder(String version, Map<String, TypeInfo> typeInfos, Atlas atlas, String helpersPath) {
         super(typeInfos.values());
-        this.settings = new AtriusModelInfoSettings(version);
+        this.settings = new NDHMModelInfoSettings(version);
         this.helpersPath = helpersPath;
         this.contextInfoBuilder = new ContextInfoBuilder(settings, atlas, typeInfos);
     }
@@ -36,7 +37,7 @@ public class AtriusModelInfoBuilder extends ModelInfoBuilder {
     protected void beforeBuild() {
         try {
             PrintWriter pw = new PrintWriter(this.helpersPath);
-            pw.println(String.format("library AtriusHelpers version '%s'\n", this.settings.version)
+            pw.println(String.format("library NDHMHelpers version '%s'\n", this.settings.version)
                     + "\n" +
                     "using FHIR version '4.0.1'\n" +
                             "\n" +
@@ -148,17 +149,14 @@ public class AtriusModelInfoBuilder extends ModelInfoBuilder {
             pw.close();
         }
         catch (Exception e) {
-            logger.error("Unable to write AtriusHelpers");
+            logger.error("Unable to write NDHMHelpers");
         }
     }
-
     @Override
     protected ModelInfo afterBuild(ModelInfo mi) {
         mi.withContextInfo(this.contextInfoBuilder.build().values());
         mi.getRequiredModelInfo().add(new ModelSpecifier().withName("FHIR").withVersion(FHIR_MODEL_VERSION)
                 .withUrl(FHIR_MODEL_URL));
-        mi.getRequiredModelInfo().add(new ModelSpecifier().withName("NDHM").withVersion(NDHM_MODEL_VERSION)
-                .withUrl(NDHM_MODEL_URL));
         return mi;
     }
 }

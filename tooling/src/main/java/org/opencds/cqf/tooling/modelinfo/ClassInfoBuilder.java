@@ -105,8 +105,10 @@ public abstract class ClassInfoBuilder {
     // Resolves the base type name for the given type
     private String resolveBaseTypeName(String typeId) throws Exception {
         if (typeId != null) {
-            StructureDefinition sd = structureDefinitions.get(typeId);
-            return resolveTypeName(sd.getBaseDefinition());
+            StructureDefinition sd = resolveStructureDefinition(typeId);
+            if (sd != null) {
+                return resolveTypeName(sd.getBaseDefinition());
+            }
         }
 
         return null;
@@ -114,12 +116,34 @@ public abstract class ClassInfoBuilder {
 
     private String getTypeNameFromUrl(String url) {
         if (url != null) {
-            String typeId = getTail(url);
-            StructureDefinition sd = structureDefinitions.get(typeId);
-            return getTypeName(sd);
+            StructureDefinition sd = resolveStructureDefinition(url);
+            if (sd != null) {
+                return getTypeName(sd);
+            }
         }
 
         return null;
+    }
+
+    /**
+     * Resolve a StructureDefinition by canonical URL first (handles duplicate ids across
+     * FHIR core, NDHM, and IG packages), then fall back to id.
+     */
+    protected StructureDefinition resolveStructureDefinition(String reference) {
+        if (reference == null) {
+            return null;
+        }
+        for (StructureDefinition sd : this.structureDefinitions.values()) {
+            if (reference.equals(sd.getUrl())) {
+                return sd;
+            }
+        }
+        StructureDefinition byId = this.structureDefinitions.get(reference);
+        if (byId != null) {
+            return byId;
+        }
+        String tail = getTail(reference);
+        return tail != null ? this.structureDefinitions.get(tail) : null;
     }
 
     private String getTypeName(String modelName, String typeName) {
@@ -1467,8 +1491,10 @@ public abstract class ClassInfoBuilder {
         }
 
         if (baseTypeName != null && !this.typeInfos.containsKey(baseTypeName)) {
-            StructureDefinition baseSd = this.structureDefinitions.get(getTail(baseDefinition));
-            buildClassInfo(modelName, baseSd);
+            StructureDefinition baseSd = resolveStructureDefinition(baseDefinition);
+            if (baseSd != null) {
+                buildClassInfo(modelName, baseSd);
+            }
         }
 
         if (baseTypeName != null && unQualify(baseTypeName).equals("Extension") && elements.size() == 2
@@ -1518,7 +1544,12 @@ public abstract class ClassInfoBuilder {
 
     protected void buildFor(String model, String id) {
         try {
-            this.buildClassInfo(model, structureDefinitions.get(id));
+            StructureDefinition sd = resolveStructureDefinition(id);
+            if (sd == null) {
+                logger.error("StructureDefinition not found for: {}", id);
+                return;
+            }
+            this.buildClassInfo(model, sd);
         }
         catch (Exception e) {
             logger.error("Error building ClassInfo for: {} - {}", id, e.getMessage());
